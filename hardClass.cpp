@@ -1,0 +1,218 @@
+#include <iostream>
+#include<conio.h>
+#include<dos.h>
+#include <windows.h>
+#include<time.h>
+
+// Directories
+#include "MainHeader.h"
+
+
+using namespace std;
+
+
+
+	static int carPos = WIN_WIDTH/2;
+	static int score = 0;
+	static const char car[4][4] = {' ', '^', '^', ' ',
+								  '[', '±', '±', ']', 
+								  ' ', '±', '±', ' ', 
+								  '[', '±', '±', ']',}; 								  		
+	static int enemyY[5];
+	static int enemyX[5];
+	static int enemyFlag[3];
+
+
+void hardClass::genEnemy(int ind) {
+	enemyX[ind] = 17 + rand()%(33);
+}
+
+void hardClass::drawEnemy(int ind) {
+	
+	if(enemyFlag[ind] == true) {
+		gotoxy(enemyX[ind], enemyY[ind]);   cout << "|  |";
+		gotoxy(enemyX[ind], enemyY[ind]);   cout << "±UU±";
+		gotoxy(enemyX[ind], enemyY[ind]+1); cout << " ±± ";
+		gotoxy(enemyX[ind], enemyY[ind]+2); cout << "±±±±";
+		gotoxy(enemyX[ind], enemyY[ind]+3); cout << " vv ";
+	}
+
+}
+
+void hardClass::eraseEnemy(int ind) {
+	if(enemyFlag[ind] == true) {
+		gotoxy(enemyX[ind], enemyY[ind]);   cout << "     ";
+		gotoxy(enemyX[ind], enemyY[ind]);   cout << "     ";
+		gotoxy(enemyX[ind], enemyY[ind]+1); cout << "     ";
+		gotoxy(enemyX[ind], enemyY[ind]+2); cout << "     ";
+		gotoxy(enemyX[ind], enemyY[ind]+3); cout << "     ";
+	}
+}
+
+void hardClass::resetEnemy(int ind) {
+	eraseEnemy(ind);
+	enemyY[ind] = 1;
+	genEnemy(ind);
+}
+
+
+void hardClass::drawBorder() {
+	for(int i = 0; i < SCREEN_HEIGHT; i++) {
+		for(int j = 0; j < 17; j++) {
+			gotoxy(0+j, i); cout << "±";
+			gotoxy(WIN_WIDTH-j, i); cout << "±";
+		}
+	}
+	
+	for(int i = 0; i < SCREEN_HEIGHT; i++) {
+		gotoxy(SCREEN_WIDTH, i); cout << "±";
+	}
+		
+}
+
+int hardClass::collision() {
+	if((enemyY[0]) + 4 >= 23) {
+		if(enemyX[0] + 4 - carPos >= 0 && enemyX[0] + 4 - carPos < 9) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
+
+void hardClass::updateScore() {
+	gotoxy(WIN_WIDTH + 7, 5); cout << "Score: " << score << endl;
+	
+}
+
+
+				  
+void hardClass::drawCar() {
+	for(int i = 0; i<4; i++) {
+		for(int j = 0; j<4; j++) {
+			gotoxy(j+carPos, i+22); cout << car[i][j];
+		}
+	}
+	
+}
+
+void hardClass::eraseCar() {
+	for(int i = 0; i<4; i++) {
+		for(int j = 0; j<4; j++) {
+			gotoxy(j+carPos, i+22); cout << " ";
+		}
+	}
+	
+}
+
+void hardClass::hardPlay() {
+	
+	system("color 6");
+	carPos = -1 + WIN_WIDTH/2;
+	score = 0;
+	enemyFlag[0] = 1;
+	enemyFlag[1] = 0;
+	enemyY[0] = enemyY[1] = 1;
+	
+	system("cls");
+	drawBorder();
+	updateScore();
+	genEnemy(0);
+	genEnemy(1);
+	genEnemy(2);
+	genEnemy(3);
+	
+	gotoxy(WIN_WIDTH + 7, 2); cout << "THE CAR GAME";
+	gotoxy(WIN_WIDTH + 6, 4); cout << "---------";
+	gotoxy(WIN_WIDTH + 7, 12); cout << "CONTROLS:";
+	gotoxy(WIN_WIDTH + 7, 13); cout << "---------";
+	gotoxy(WIN_WIDTH + 2, 14); cout << "A - Left";
+	gotoxy(WIN_WIDTH + 2, 15); cout << "D - Right";
+	gotoxy(WIN_WIDTH + 2, 16); cout << "E - Exit";
+	
+	gotoxy(18, 5); cout << "Press any key to begin";
+	getch();
+	gotoxy(18, 5); cout << "                        ";
+	
+	
+	while(1) {
+		if(kbhit()) {
+			char ch = getch();
+			if( ch == 'a' || ch == 'A') {
+				// Change speed of left
+				if( carPos > 18 )
+					carPos -= 4;
+			}
+			if( ch == 'd' || ch == 'D') {
+				// Change speed of right
+				if( carPos < 50 )
+					carPos += 4;
+			}
+			if( ch == 'e' || ch == 'E') {
+				getMenu();
+				break;
+			}
+			if(ch==27) {
+				break;
+			}
+		}
+		
+		drawCar();
+		drawEnemy(0);
+		drawEnemy(1);
+		drawEnemy(2);
+		drawEnemy(3);
+		
+		if ( collision() == 1) {
+			gameover();
+			return;
+		}
+		Sleep(50);
+		eraseCar();
+		eraseEnemy(0);
+		eraseEnemy(1);
+		eraseEnemy(2);
+		eraseEnemy(3);
+		
+		
+		if (enemyY[0] == 10)
+			if( enemyFlag[1] == 0 )
+		    	enemyFlag[1] = 1;
+		    	// speed of enemy
+			if(enemyFlag[0] == 1)
+				enemyY[0] += 3;
+			if ( enemyFlag[1] == 1)
+				enemyY[1] += 3;
+			if ( enemyFlag[2] == 1)
+				enemyY[2] += 3;	
+			if ( enemyFlag[3] == 1)
+				enemyY[3] += 3;	
+			if(enemyY[0] > SCREEN_HEIGHT - 4) {
+				resetEnemy(0);
+				score++;
+				updateScore();
+			}
+			if( enemyY[1] > SCREEN_HEIGHT- 4) { 
+				resetEnemy(1);
+				score++;
+				updateScore();
+			}
+			if( enemyY[2] > SCREEN_HEIGHT- 4) { 
+				resetEnemy(2);
+				score++;
+				updateScore();
+			}
+			if( enemyY[3] > SCREEN_HEIGHT- 4) { 
+				resetEnemy(3);
+				score++;
+				updateScore();
+			}
+	}
+	
+}
+
+
+
+
+
+
